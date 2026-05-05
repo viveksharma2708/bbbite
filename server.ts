@@ -10,8 +10,9 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-async function startServer() {
-  const app = express();
+const app = express();
+
+async function configureApp() {
   const PORT = 3000;
 
   // Stripe initialization (lazy)
@@ -20,7 +21,6 @@ async function startServer() {
     if (!stripe) {
       const key = process.env.STRIPE_SECRET_KEY;
       if (!key) {
-        // We handle this gracefully later in the route
         return null;
       }
       stripe = new Stripe(key);
@@ -41,7 +41,7 @@ async function startServer() {
       }
 
       const paymentIntent = await stripeClient.paymentIntents.create({
-        amount: Math.round(amount * 100), // convert to cents/paise
+        amount: Math.round(amount * 100),
         currency,
         automatic_payment_methods: {
           enabled: true,
@@ -55,7 +55,7 @@ async function startServer() {
   });
 
   // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
+  if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
@@ -69,9 +69,13 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
+  if (!process.env.VERCEL) {
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  }
 }
 
-startServer();
+configureApp();
+
+export default app;

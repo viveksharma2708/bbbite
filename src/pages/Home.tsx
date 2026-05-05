@@ -24,12 +24,12 @@ import {
   MapPin
 } from 'lucide-react';
 import { collection, onSnapshot, doc, setDoc, serverTimestamp, query, addDoc, where } from 'firebase/firestore';
-import { db, auth } from '../lib/firebase';
+import { db, auth, handleFirestoreError, OperationType } from '../lib/firebase';
 import { Product, Order, UserProfile, StoreSettings, CartItem } from '../types';
 import { cn } from '../lib/utils';
-import { handleFirestoreError, OperationType } from '../lib/firebase';
 import PaymentModal from '../components/PaymentModal';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface HomeProps {
   userProfile: UserProfile | null;
@@ -248,10 +248,10 @@ export default function Home({
       clearCart();
       setIsCartOpen(false);
       setShowPayment(false);
-      alert('Order placed successfully!');
+      toast.success('Order placed successfully!');
     } catch (error) {
       console.error(error);
-      alert('Failed to place order.');
+      toast.error('Failed to place order.');
     } finally {
       setIsPlacingOrder(false);
     }

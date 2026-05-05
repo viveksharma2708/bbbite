@@ -2,7 +2,7 @@ import React, { useState, useEffect, type FormEvent } from 'react';
 import { collection, onSnapshot, query, orderBy, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { Product, Order, OrderStatus } from '../types';
-import { Plus, Trash2, Edit2, Package, CheckCircle2, Clock, Truck, ChevronRight, XCircle, User, MapPin, Filter, ShoppingBag, BarChart3, Settings, Zap } from 'lucide-react';
+import { Plus, Trash2, Edit2, Package, CheckCircle2, Clock, Truck, ChevronRight, XCircle, User, MapPin, Filter, ShoppingBag, BarChart3, Settings, Zap, Search, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { StoreSettings } from '../types';
@@ -20,7 +20,10 @@ export default function Admin() {
   
   const [orderFilter, setOrderFilter] = useState<'all' | 'pending' | 'completed' | 'cancelled'>('pending');
   const [paymentFilter, setPaymentFilter] = useState<'all' | 'online' | 'cod'>('all');
-  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week'>('all');
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'custom'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   
   // Product Form State
   const [isAddingProduct, setIsAddingProduct] = useState(false);
@@ -186,10 +189,33 @@ export default function Admin() {
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(now.getDate() - 7);
         matchesDate = orderDate >= oneWeekAgo;
+      } else if (dateFilter === 'custom') {
+        const start = startDate ? new Date(startDate) : null;
+        const end = endDate ? new Date(endDate) : null;
+        if (start) {
+          start.setHours(0, 0, 0, 0);
+          matchesDate = matchesDate && orderDate >= start;
+        }
+        if (end) {
+          end.setHours(23, 59, 59, 999);
+          matchesDate = matchesDate && orderDate <= end;
+        }
       }
     }
 
-    return matchesStatus && matchesPayment && matchesDate;
+    // Search Filter
+    let matchesSearch = true;
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const orderId = order.id?.toLowerCase() || '';
+      const address = order.deliveryAddress.toLowerCase();
+      const userId = order.userId.toLowerCase();
+      const itemsMatch = order.items.some(item => item.name.toLowerCase().includes(query));
+      
+      matchesSearch = orderId.includes(query) || address.includes(query) || userId.includes(query) || itemsMatch;
+    }
+
+    return matchesStatus && matchesPayment && matchesDate && matchesSearch;
   });
 
   const seedMenu = async () => {
@@ -212,7 +238,7 @@ export default function Admin() {
           updatedAt: serverTimestamp()
         });
       }
-      alert("Menu seeded successfully!");
+      toast.success("Menu seeded successfully!");
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, 'products');
     }
@@ -303,57 +329,99 @@ export default function Admin() {
             exit={{ opacity: 0 }}
             className="space-y-8"
           >
-            {/* Order Filter Bar */}
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="flex bg-white p-1 rounded-2xl border border-gray-100 shadow-sm">
-                {(['pending', 'completed', 'cancelled', 'all'] as const).map(filter => (
-                  <button
-                    key={filter}
-                    onClick={() => setOrderFilter(filter)}
-                    className={cn(
-                      "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
-                      orderFilter === filter 
-                        ? "bg-primary-600 text-white shadow-xl shadow-primary-200" 
-                        : "bg-white text-gray-400 hover:text-gray-900"
-                    )}
-                  >
-                    {filter}
-                  </button>
-                ))}
+            {/* Order Management Bar */}
+            <div className="flex flex-col gap-6">
+              {/* Search Bar */}
+              <div className="relative group">
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300 group-focus-within:text-primary-600 transition-colors" />
+                <input 
+                  type="text"
+                  placeholder="Search by Order ID, Address, User ID or Item Name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-14 pr-6 py-5 bg-white border border-gray-100 rounded-[2rem] shadow-sm text-sm font-medium focus:ring-4 focus:ring-primary-500/10 outline-none transition-all"
+                />
               </div>
 
-              <div className="flex bg-white p-1 rounded-2xl border border-gray-100 shadow-sm">
-                {(['all', 'online', 'cod'] as const).map(filter => (
-                  <button
-                    key={filter}
-                    onClick={() => setPaymentFilter(filter)}
-                    className={cn(
-                      "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
-                      paymentFilter === filter 
-                        ? "bg-gray-950 text-white shadow-xl shadow-gray-400/20" 
-                        : "bg-white text-gray-400 hover:text-gray-900"
-                    )}
-                  >
-                    {filter === 'all' ? 'All Payments' : filter.toUpperCase()}
-                  </button>
-                ))}
-              </div>
+              {/* Filter Bar */}
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex bg-white p-1 rounded-2xl border border-gray-100 shadow-sm">
+                  {(['pending', 'completed', 'cancelled', 'all'] as const).map(filter => (
+                    <button
+                      key={filter}
+                      onClick={() => setOrderFilter(filter)}
+                      className={cn(
+                        "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
+                        orderFilter === filter 
+                          ? "bg-primary-600 text-white shadow-xl shadow-primary-200" 
+                          : "bg-white text-gray-400 hover:text-gray-900"
+                      )}
+                    >
+                      {filter}
+                    </button>
+                  ))}
+                </div>
 
-              <div className="flex bg-white p-1 rounded-2xl border border-gray-100 shadow-sm">
-                {(['all', 'today', 'week'] as const).map(filter => (
-                  <button
-                    key={filter}
-                    onClick={() => setDateFilter(filter)}
-                    className={cn(
-                      "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
-                      dateFilter === filter 
-                        ? "bg-gray-700 text-white shadow-xl shadow-gray-400/20" 
-                        : "bg-white text-gray-400 hover:text-gray-900"
-                    )}
+                <div className="flex bg-white p-1 rounded-2xl border border-gray-100 shadow-sm">
+                  {(['all', 'online', 'cod'] as const).map(filter => (
+                    <button
+                      key={filter}
+                      onClick={() => setPaymentFilter(filter)}
+                      className={cn(
+                        "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
+                        paymentFilter === filter 
+                          ? "bg-gray-950 text-white shadow-xl shadow-gray-400/20" 
+                          : "bg-white text-gray-400 hover:text-gray-900"
+                      )}
+                    >
+                      {filter === 'all' ? 'All Payments' : filter.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex bg-white p-1 rounded-2xl border border-gray-100 shadow-sm">
+                  {(['all', 'today', 'week', 'custom'] as const).map(filter => (
+                    <button
+                      key={filter}
+                      onClick={() => setDateFilter(filter)}
+                      className={cn(
+                        "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
+                        dateFilter === filter 
+                          ? "bg-gray-700 text-white shadow-xl shadow-gray-400/20" 
+                          : "bg-white text-gray-400 hover:text-gray-900"
+                      )}
+                    >
+                      {filter === 'all' ? 'All Time' : filter === 'custom' ? 'Custom Range' : filter.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+
+                {dateFilter === 'custom' && (
+                  <motion.div 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="flex items-center gap-2 bg-white p-1 rounded-2xl border border-gray-100 shadow-sm"
                   >
-                    {filter === 'all' ? 'All Time' : filter.toUpperCase()}
-                  </button>
-                ))}
+                    <div className="flex items-center gap-2 px-3">
+                      <Calendar className="w-4 h-4 text-gray-400" />
+                      <input 
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="text-xs font-bold text-gray-600 outline-none bg-transparent"
+                      />
+                    </div>
+                    <span className="text-gray-300 font-bold">→</span>
+                    <div className="flex items-center gap-2 px-3">
+                      <input 
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="text-xs font-bold text-gray-600 outline-none bg-transparent"
+                      />
+                    </div>
+                  </motion.div>
+                )}
               </div>
             </div>
 
