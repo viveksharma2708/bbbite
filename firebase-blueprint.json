@@ -1,0 +1,80 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user account details and roles.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Unique user ID from Firebase Auth." },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Product": {
+      "title": "Canteen Product",
+      "description": "Food or drink item available in the canteen.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "isAvailable": { "type": "boolean" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "price", "category", "isAvailable"]
+    },
+    "Order": {
+      "title": "Customer Order",
+      "description": "A food order placed by a user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "items": { "type": "array" },
+        "totalAmount": { "type": "number" },
+        "status": { "type": "string", "enum": ["placed", "preparing", "out_for_delivery", "delivered", "cancelled"] },
+        "deliveryAddress": { "type": "string" },
+        "paymentMethod": { "type": "string", "enum": ["online", "cod"] },
+        "paymentStatus": { "type": "string", "enum": ["pending", "paid", "failed"] },
+        "estimatedDeliveryTime": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "items", "totalAmount", "status", "deliveryAddress", "paymentMethod", "paymentStatus"]
+    },
+    "Settings": {
+      "title": "Store Settings",
+      "description": "Global configuration for the canteen.",
+      "type": "object",
+      "properties": {
+        "isAcceptingOrders": { "type": "boolean" },
+        "announcement": { "type": "string" },
+        "estimatedPrepTime": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["isAcceptingOrders"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles managed by Auth ID."
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Food catalog."
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Customer orders."
+    },
+    "/settings/store": {
+      "schema": "Settings",
+      "description": "Global store settings."
+    }
+  }
+}
