@@ -15,6 +15,10 @@ export const signInWithGoogle = async () => {
     if (error.code === 'auth/popup-blocked') {
       throw new Error('The sign-in popup was blocked by your browser. Please allow popups for this site and try again.');
     }
+    if (error.code === 'auth/unauthorized-domain') {
+      const domain = window.location.hostname;
+      throw new Error(`Domain "${domain}" is not authorized in Firebase Console. Please add it to "Authentication > Settings > Authorized domains".`);
+    }
     if (error.code === 'auth/cancelled-popup-request') {
       return null;
     }
