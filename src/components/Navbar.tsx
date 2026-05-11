@@ -20,23 +20,23 @@ export default function Navbar({
   setSearchQuery 
 }: NavbarProps) {
   return (
-    <nav className="bg-white sticky top-0 z-[100] border-b border-slate-100 shadow-sm">
-      <div className="container mx-auto px-4 md:px-6 h-20 md:h-24 flex items-center gap-4 md:gap-8">
+    <nav className="glass sticky top-0 z-[100] border-b border-primary-100/50 px-4 md:px-8">
+      <div className="container mx-auto h-20 md:h-24 flex items-center gap-4 md:gap-8">
         {/* Mobile Menu */}
         <button 
           onClick={onOpenSidebar}
-          className="lg:hidden p-2 -ml-2 text-slate-600 hover:text-primary-600 transition-colors"
+          className="lg:hidden p-3 text-slate-500 hover:text-primary-600 hover:bg-primary-50 rounded-2xl transition-all"
         >
           <Menu className="w-6 h-6" />
         </button>
 
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 shrink-0">
-          <div className="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center glow-primary">
+        <Link to="/" className="flex items-center gap-3 shrink-0 group">
+          <div className="w-12 h-12 bg-primary-600 rounded-[1.25rem] flex items-center justify-center glow-primary group-hover:scale-110 transition-all duration-500">
             <Utensils className="w-6 h-6 text-white" />
           </div>
-          <div className="hidden sm:block text-primary-600 font-display font-black text-2xl md:text-3xl tracking-tighter">
-            BB<span className="text-slate-900"> Bite</span>
+          <div className="hidden sm:block text-slate-900 font-display font-black text-2xl md:text-3xl tracking-tighter leading-none">
+            BB<span className="text-primary-600"> Bite</span>
           </div>
         </Link>
 
@@ -51,40 +51,40 @@ export default function Navbar({
 
         {/* Search Bar */}
         <div className="flex-1 relative group max-w-2xl">
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-600 transition-colors">
+          <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-600 transition-colors">
             <Search className="w-5 h-5" />
           </div>
           <input 
             type="text" 
-            placeholder='Search for "burger" or "cold coffee"'
-            className="w-full h-12 bg-slate-100 border-none rounded-xl pl-12 pr-4 text-sm font-medium text-slate-800 placeholder:text-slate-400 ring-primary-600/20 focus:ring-4 transition-all"
+            placeholder='Search delicacies...'
+            className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl pl-14 pr-6 text-sm font-bold text-slate-800 placeholder:text-slate-300 focus:bg-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-100 transition-all outline-none"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-1 md:gap-4 shrink-0">
+        <div className="flex items-center gap-2 md:gap-4 shrink-0">
           {userProfile ? (
-            <Link to={userProfile.role === 'admin' ? '/admin' : '/orders'} className="flex flex-col items-center p-2 text-slate-600 hover:text-primary-600 transition-colors group">
-              <User className="w-5 h-5 mb-0.5 group-hover:scale-110 transition-transform" />
-              <span className="text-[10px] font-bold hidden md:block">Account</span>
+            <Link to={userProfile.role === 'admin' ? '/admin' : '/orders'} className="flex flex-col items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-2xl text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-all group relative">
+              <User className="w-6 h-6 group-hover:scale-110 transition-transform" />
+              {userProfile.role === 'admin' && (
+                <div className="absolute top-2 right-2 w-2 h-2 bg-primary-600 rounded-full" />
+              )}
             </Link>
           ) : (
-            <Link to="/login" className="flex flex-col items-center p-2 text-slate-600 hover:text-primary-600 transition-colors group">
-              <User className="w-5 h-5 mb-0.5 group-hover:scale-110 transition-transform" />
-              <span className="text-[10px] font-bold hidden md:block">Login</span>
+            <Link to="/login" className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary-600 shadow-xl shadow-slate-200 transition-all active:scale-95">
+              Login
             </Link>
           )}
           
           <button 
             onClick={onOpenCart}
-            className="relative p-2 text-slate-600 hover:text-primary-600 transition-colors group"
+            className="relative w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-2xl text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-all group"
           >
-            <ShoppingBag className="w-5 h-5 mb-0.5 group-hover:scale-110 transition-transform" />
-            <span className="text-[10px] font-bold hidden md:block">Cart</span>
+            <ShoppingBag className="w-6 h-6 group-hover:scale-110 transition-transform" />
             {cartCount > 0 && (
-              <span className="absolute top-1 right-1 w-4 h-4 bg-primary-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">
+              <span className="absolute -top-1 -right-1 w-6 h-6 bg-primary-600 text-white text-[10px] font-black rounded-lg flex items-center justify-center border-4 border-white shadow-lg">
                 {cartCount}
               </span>
             )}

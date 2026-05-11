@@ -79,42 +79,8 @@ export default function App() {
           setUserProfile(currentProfile);
         }
 
-        // Seeding logic - Only run if admin or matching email and menu is empty
-        if (currentProfile.role === 'admin' || user.email === 'vivek5656sharma@gmail.com') {
-          try {
-            const productsRef = collection(db, 'products');
-            const snap = await getDocs(productsRef);
-            if (snap.empty) {
-              console.log("Empty products collection found. Seeding initial data...");
-              const initialProducts = [
-                { name: 'Spicy Veg Burger', price: 89, category: 'Snacks', description: 'Crispy veg patty with tangy mayo and fresh veggies.', isAvailable: true, imageUrl: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&auto=format&fit=crop&q=60' },
-                { name: 'Cold Coffee Classic', price: 65, category: 'Drinks', description: 'Hand-beaten creamy cold coffee with chocolate drizzle.', isAvailable: true, imageUrl: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=500&auto=format&fit=crop&q=60' },
-                { name: 'Paneer Butter Masala', price: 180, category: 'Lunch', description: 'Rich creamy paneer curry served with 2 butter naan.', isAvailable: true, imageUrl: 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=500&auto=format&fit=crop&q=60' },
-                { name: 'Grilled Sandwich', price: 75, category: 'Snacks', description: 'Cheese and capsicum stuffed jumbo sandwich.', isAvailable: true, imageUrl: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=500&auto=format&fit=crop&q=60' },
-                { name: 'Lemon Iced Tea', price: 45, category: 'Drinks', description: 'Refreshing brewed iced tea with real lemon juice.', isAvailable: true, imageUrl: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=500&auto=format&fit=crop&q=60' },
-                { name: 'South Indian Thali', price: 150, category: 'Lunch', description: 'Traditional thali with sambhar, rice and crispy papad.', isAvailable: true, imageUrl: 'https://images.unsplash.com/photo-1589301760014-a929f3979dbc?w=500&auto=format&fit=crop&q=60' }
-              ];
-
-              for (const p of initialProducts) {
-                await addDoc(collection(db, 'products'), { ...p, updatedAt: serverTimestamp() });
-              }
-            }
-
-            // Seed settings if missing
-            const settingsRef = doc(db, 'settings', 'store');
-            const settingsSnap = await getDoc(settingsRef);
-            if (!settingsSnap.exists()) {
-              await setDoc(settingsRef, {
-                isAcceptingOrders: true,
-                announcement: 'Welcome to the new BB Bite Experience!',
-                estimatedPrepTime: '20-30 mins',
-                updatedAt: serverTimestamp()
-              });
-            }
-          } catch (err) {
-            handleFirestoreError(err, OperationType.WRITE, 'products');
-          }
-        }
+        // Seeding logic removed to prevent deleted items from returning on refresh.
+        // Admins can use the "Seed Menu" button in the Admin Panel instead.
       } else {
         setUserProfile(null);
       }
