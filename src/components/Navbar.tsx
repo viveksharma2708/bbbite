@@ -68,14 +68,14 @@ export default function Navbar({
         {/* Actions */}
         <div className="flex items-center gap-1 md:gap-4 shrink-0">
           {userProfile ? (
-            <Link to={userProfile.role === 'admin' ? '/admin' : '/orders'} className="flex flex-col items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-2xl text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-all group relative">
+            <Link to={userProfile.role === 'admin' ? '/admin' : '/orders'} className="flex flex-col items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-2xl text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-all group relative mr-1 md:mr-2">
               <User className="w-6 h-6 group-hover:scale-110 transition-transform" />
               {userProfile.role === 'admin' && (
                 <div className="absolute top-2 right-2 w-2 h-2 bg-primary-600 rounded-full" />
               )}
             </Link>
           ) : (
-            <Link to="/login" className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary-600 shadow-xl shadow-slate-200 transition-all active:scale-95">
+            <Link to="/login" className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary-600 shadow-xl shadow-slate-200 transition-all active:scale-95 mr-1 md:mr-2">
               Login
             </Link>
           )}
