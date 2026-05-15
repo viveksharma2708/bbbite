@@ -44,6 +44,9 @@ service cloud.firestore {
              data.totalAmount is number &&
              data.status in ['placed', 'preparing', 'out_for_delivery', 'delivered', 'cancelled'] &&
              data.deliveryAddress is string && data.deliveryAddress.size() < 500 &&
+             data.customerName is string && data.customerName.size() < 100 &&
+             data.customerPhone is string && data.customerPhone.size() < 20 &&
+             data.course is string && data.course.size() < 50 &&
              data.paymentMethod in ['online', 'cod'] &&
              data.paymentStatus in ['pending', 'paid', 'failed'];
     }

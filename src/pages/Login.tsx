@@ -51,10 +51,10 @@ export default function Login() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full bg-white rounded-[3rem] shadow-2xl shadow-primary-900/5 p-8 md:p-12 border border-gray-100 relative overflow-hidden"
+        className="max-w-md w-full bg-white rounded-[2.5rem] md:rounded-[3rem] shadow-2xl shadow-primary-900/5 p-6 md:p-12 border border-gray-100 relative overflow-hidden"
       >
         {/* Decorative corner */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-primary-50 rounded-bl-[4rem] -z-10 opacity-50" />
+        <div className="absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 bg-primary-50 rounded-bl-[3rem] md:rounded-bl-[4rem] -z-10 opacity-50" />
         
         <AnimatePresence mode="wait">
           {mode === 'selection' ? (
@@ -63,14 +63,14 @@ export default function Login() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
-              className="space-y-8"
+              className="space-y-6 md:space-y-8"
             >
-              <div className="text-center space-y-3">
-                <div className="w-20 h-20 bg-primary-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-primary-200 glow-primary">
-                  <Utensils className="w-10 h-10 text-white" />
+              <div className="text-center space-y-2 md:space-y-3">
+                <div className="w-16 h-16 md:w-20 md:h-20 bg-primary-600 rounded-2xl md:rounded-3xl flex items-center justify-center mx-auto mb-4 md:mb-6 shadow-xl shadow-primary-200 glow-primary">
+                  <Utensils className="w-8 h-8 md:w-10 md:h-10 text-white" />
                 </div>
-                <h1 className="text-4xl font-display font-bold text-slate-900 tracking-tight">BB Bite</h1>
-                <p className="text-slate-500 font-medium px-4 leading-relaxed">Experience premium campus dining delivered fresh to your desk.</p>
+                <h1 className="text-3xl md:text-4xl font-display font-bold text-slate-900 tracking-tight leading-none">BB Bite</h1>
+                <p className="text-slate-500 font-medium px-2 md:px-4 leading-relaxed text-sm md:text-base">Experience premium campus dining delivered fresh to your desk.</p>
               </div>
 
               <div className="space-y-3">

@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp, getDocs, collection, addDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db, handleFirestoreError, OperationType } from './lib/firebase';
 import { UserProfile, Product, CartItem } from './types';
+import { cn } from './lib/utils';
 
 // Pages
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Admin from './pages/Admin';
 import OrderHistory from './pages/OrderHistory';
+import OrderConfirmation from './pages/OrderConfirmation';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 
@@ -19,7 +21,14 @@ export default function App() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    const saved = localStorage.getItem('bb-bite-cart');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('bb-bite-cart', JSON.stringify(cart));
+  }, [cart]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -90,6 +99,9 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  const location = useLocation();
+  const showLayout = location.pathname !== '/admin';
+
   if (loading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-white">
@@ -99,25 +111,35 @@ export default function App() {
   }
 
   return (
-    <Router>
+    <>
       <Toaster position="top-right" expand={true} richColors />
-      <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
-        <Sidebar 
-          userProfile={userProfile} 
-          isOpen={isSidebarOpen} 
-          onClose={() => setIsSidebarOpen(false)} 
-        />
-        <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-          <Navbar 
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        {showLayout && (
+          <Sidebar 
             userProfile={userProfile} 
-            onOpenSidebar={() => setIsSidebarOpen(true)}
-            cartCount={cart.reduce((s, i) => s + i.quantity, 0)}
-            onOpenCart={() => setIsCartOpen(true)}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
+            isOpen={isSidebarOpen} 
+            onClose={() => setIsSidebarOpen(false)} 
           />
-          <main className="flex-1 overflow-y-auto overflow-x-hidden container-content">
-            <div className="max-w-7xl mx-auto p-4 lg:p-8">
+        )}
+        <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+          {showLayout && (
+            <Navbar 
+              userProfile={userProfile} 
+              onOpenSidebar={() => setIsSidebarOpen(true)}
+              cartCount={cart.reduce((s, i) => s + i.quantity, 0)}
+              onOpenCart={() => setIsCartOpen(true)}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+            />
+          )}
+          <main className={cn(
+            "flex-1 overflow-y-auto overflow-x-hidden",
+            !showLayout && "h-screen"
+          )}>
+            <div className={cn(
+              "container mx-auto px-4 md:px-8 lg:px-10 py-6 md:py-10",
+              !showLayout && "max-w-none px-0 py-0"
+            )}>
               <Routes>
                 <Route path="/" element={
                   <Home 
@@ -141,11 +163,15 @@ export default function App() {
                   path="/orders" 
                   element={userProfile ? <OrderHistory userProfile={userProfile} /> : <Navigate to="/login" />} 
                 />
+                <Route 
+                  path="/order-confirmation/:orderId" 
+                  element={userProfile ? <OrderConfirmation /> : <Navigate to="/login" />} 
+                />
               </Routes>
             </div>
           </main>
         </div>
       </div>
-    </Router>
+    </>
   );
 }

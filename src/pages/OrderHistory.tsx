@@ -14,11 +14,82 @@ interface OrderHistoryProps {
   userProfile: UserProfile;
 }
 
+const LiveTrackingMap = ({ orderId, driverStatus }: { orderId: string, driverStatus: string }) => {
+  return (
+    <div className="relative w-full h-[300px] md:h-[400px] bg-slate-50 rounded-[2.5rem] overflow-hidden border border-slate-100 mb-8">
+      {/* Grid Pattern Background */}
+      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+      
+      {/* Simulated Roadmap Paths */}
+      <svg className="absolute inset-0 w-full h-full text-slate-200" viewBox="0 0 400 400">
+        <path d="M 0 100 L 400 100" stroke="currentColor" strokeWidth="12" fill="none" strokeLinecap="round" />
+        <path d="M 200 0 L 200 400" stroke="currentColor" strokeWidth="12" fill="none" strokeLinecap="round" />
+        <path d="M 0 300 L 400 300" stroke="currentColor" strokeWidth="12" fill="none" strokeLinecap="round" />
+        <path d="M 100 100 L 100 300" stroke="currentColor" strokeWidth="12" fill="none" strokeLinecap="round" />
+        <path d="M 300 100 L 300 300" stroke="currentColor" strokeWidth="12" fill="none" strokeLinecap="round" />
+        
+        {/* Delivery Route Animation */}
+        <motion.path 
+          d="M 50 100 L 100 100 L 100 200 L 300 200 L 300 300 L 350 300" 
+          stroke="#0ea5e9" 
+          strokeWidth="6" 
+          fill="none" 
+          strokeLinecap="round"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        />
+        
+        {/* Destination Marker */}
+        <circle cx="350" cy="300" r="10" fill="#0ea5e9" />
+        <circle cx="350" cy="300" r="20" fill="#0ea5e9" className="animate-ping opacity-20" />
+      </svg>
+
+      {/* Driver Icon */}
+      <motion.div 
+        className="absolute z-20 flex flex-col items-center"
+        initial={{ left: "10%", top: "25%" }}
+        animate={{ 
+          left: ["10%", "25%", "25%", "75%", "75%", "87%"],
+          top: ["25%", "25%", "50%", "50%", "75%", "75%"]
+        }}
+        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+      >
+        <div className="w-12 h-12 bg-white rounded-2xl shadow-2xl flex items-center justify-center border-2 border-primary-100">
+           <Truck className="w-6 h-6 text-primary-600" />
+        </div>
+        <div className="mt-2 px-3 py-1 bg-slate-900 rounded-full shadow-lg">
+           <span className="text-[8px] font-black text-white uppercase tracking-widest whitespace-nowrap">Driver Approaching</span>
+        </div>
+      </motion.div>
+
+      {/* Destination Tooltip */}
+      <div className="absolute right-10 bottom-24 p-4 bg-white rounded-2xl shadow-xl border border-slate-100 flex items-center gap-4">
+         <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center">
+            <MapPin className="w-5 h-5 text-emerald-600" />
+         </div>
+         <div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Your Location</p>
+            <p className="text-xs font-black text-slate-900 mt-1">Arrival in 4 mins</p>
+         </div>
+      </div>
+
+      {/* Floating Status Badge */}
+      <div className="absolute top-6 left-6 px-5 py-3 bg-white/90 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl flex items-center gap-3">
+        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+        <span className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em]">Real-time Tracking Active</span>
+      </div>
+    </div>
+  );
+};
+
 export default function OrderHistory({ userProfile }: OrderHistoryProps) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'active' | 'past'>('active');
   const [cancellingOrder, setCancellingOrder] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState('');
+  const [showLiveTracking, setShowLiveTracking] = useState<string | null>(null);
 
   useEffect(() => {
     const q = query(
@@ -116,6 +187,10 @@ export default function OrderHistory({ userProfile }: OrderHistoryProps) {
     { status: 'delivered', label: 'Delivered', icon: CheckCircle2, description: 'Enjoy your meal!' }
   ];
 
+  const activeOrders = orders.filter(o => !['delivered', 'cancelled'].includes(o.status));
+  const pastOrders = orders.filter(o => ['delivered', 'cancelled'].includes(o.status));
+  const displayedOrders = activeTab === 'active' ? activeOrders : pastOrders;
+
   if (loading) return (
     <div className="flex items-center justify-center py-32">
       <div className="w-10 h-10 border-4 border-primary-600 border-t-transparent rounded-full animate-spin" />
@@ -123,34 +198,58 @@ export default function OrderHistory({ userProfile }: OrderHistoryProps) {
   );
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-display font-bold text-slate-900 tracking-tight">Your <span className="text-primary-600">Journeys</span></h1>
-          <p className="text-sm font-medium text-slate-400">Track and relive your culinary experiences</p>
-        </div>
-        <div className="px-4 py-2 bg-white border border-slate-100 shadow-sm rounded-2xl text-[10px] font-bold uppercase tracking-widest text-primary-600">
-          {orders.length} Deliveries
+    <div className="max-w-4xl mx-auto space-y-6 md:space-y-10 pb-10">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="space-y-1 text-center sm:text-left">
+          <h1 className="text-2xl md:text-3xl font-display font-bold text-slate-900 tracking-tight">Order <span className="text-primary-600">History</span></h1>
+          <p className="text-xs md:text-sm font-medium text-slate-400">Track your past and current culinary journeys</p>
         </div>
       </div>
 
-      {orders.length === 0 ? (
-        <div className="text-center py-24 bg-white rounded-[2.5rem] border-2 border-dashed border-gray-100 flex flex-col items-center justify-center gap-6">
-           <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center">
-             <ShoppingBag className="w-12 h-12 text-gray-200" />
+      <div className="flex items-center gap-1.5 md:gap-2 p-1.5 bg-slate-100 rounded-2xl w-full sm:w-fit">
+        <button
+          onClick={() => setActiveTab('active')}
+          className={cn(
+            "flex-1 sm:flex-none px-4 md:px-6 py-2 md:py-2.5 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all",
+            activeTab === 'active' ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"
+          )}
+        >
+          Active ({activeOrders.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('past')}
+          className={cn(
+            "flex-1 sm:flex-none px-4 md:px-6 py-2 md:py-2.5 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all",
+            activeTab === 'past' ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"
+          )}
+        >
+          Past ({pastOrders.length})
+        </button>
+      </div>
+
+      {displayedOrders.length === 0 ? (
+        <div className="text-center py-24 bg-white rounded-[2.5rem] border border-slate-100 flex flex-col items-center justify-center gap-6 shadow-sm">
+           <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center">
+             <ShoppingBag className="w-12 h-12 text-slate-200" />
            </div>
            <div className="space-y-1">
-             <h2 className="text-2xl font-black text-gray-900 tracking-tight">No hunger history yet</h2>
-             <p className="text-gray-400 font-medium max-w-xs mx-auto">Your delicious journeys will appear here for you to track and relive.</p>
+             <h2 className="text-2xl font-black text-slate-900 tracking-tight">No orders found</h2>
+             <p className="text-slate-400 font-medium max-w-xs mx-auto">
+               {activeTab === 'active' 
+                 ? "You don't have any orders in progress right now." 
+                 : "You haven't completed any orders yet."}
+             </p>
            </div>
-           <Link to="/" className="bg-primary-600 text-white px-8 py-3.5 rounded-2xl font-black shadow-xl shadow-primary-200 hover:scale-105 active:scale-100 transition-all">
-             Start Ordering
-           </Link>
+           {activeTab === 'active' && (
+             <Link to="/" className="bg-primary-600 text-white px-8 py-3.5 rounded-2xl font-black shadow-xl shadow-primary-200 hover:scale-105 active:scale-100 transition-all">
+               Start Ordering
+             </Link>
+           )}
         </div>
       ) : (
         <div className="space-y-8">
           <AnimatePresence mode="popLayout">
-            {orders.map(order => {
+            {displayedOrders.map(order => {
               const currentStep = getStatusStep(order.status);
               const isCancelled = order.status === 'cancelled';
               
@@ -206,6 +305,32 @@ export default function OrderHistory({ userProfile }: OrderHistoryProps) {
                     </div>
                   </div>
 
+                  {/* Tracking Actions */}
+                  {!isCancelled && order.status === 'out_for_delivery' && (
+                    <div className="px-8 pb-4">
+                      <button 
+                        onClick={() => setShowLiveTracking(showLiveTracking === order.id ? null : order.id!)}
+                        className="w-full h-14 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary-600 transition-all flex items-center justify-center gap-3 shadow-xl shadow-slate-200"
+                      >
+                        <MapPin className="w-4 h-4" />
+                        {showLiveTracking === order.id ? 'Hide Live Map' : 'Track Order Live'}
+                      </button>
+                    </div>
+                  )}
+
+                  <AnimatePresence>
+                    {showLiveTracking === order.id && (
+                      <motion.div 
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="px-8 overflow-hidden"
+                      >
+                        <LiveTrackingMap orderId={order.id!} driverStatus={order.status} />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
                   {/* Tracking Stepper */}
                   {!isCancelled && (
                     <div className="px-8 pb-12 bg-white">
@@ -221,33 +346,33 @@ export default function OrderHistory({ userProfile }: OrderHistoryProps) {
                           transition={{ duration: 1, ease: "circOut" }}
                         />
 
-                        <div className="relative flex justify-between">
+                        <div className="relative flex justify-between gap-1">
                           {steps.map((step, idx) => {
                             const Icon = step.icon;
                             const isCompleted = currentStep > idx;
                             const isActive = currentStep === idx;
                             
                             return (
-                              <div key={idx} className="flex flex-col items-center gap-3 relative z-10 w-24">
+                              <div key={idx} className="flex flex-col items-center gap-2 md:gap-3 relative z-10 w-1/4 min-w-[70px]">
                                 <motion.div 
                                   initial={false}
                                   animate={isActive ? { scale: 1.15 } : { scale: 1 }}
                                   className={cn(
-                                    "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500",
+                                    "w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-2xl flex items-center justify-center transition-all duration-500",
                                     isCompleted ? "bg-primary-600 text-white shadow-lg shadow-primary-200" :
-                                    isActive ? "bg-white border-2 border-primary-600 text-primary-600 shadow-2xl ring-8 ring-primary-50" :
+                                    isActive ? "bg-white border-2 border-primary-600 text-primary-600 shadow-2xl ring-4 md:ring-8 ring-primary-50" :
                                     "bg-white border border-slate-200 text-slate-300"
                                   )}
                                 >
                                   {isCompleted ? (
-                                    <CheckCircle2 className="w-6 h-6" />
+                                    <CheckCircle2 className="w-4 h-4 md:w-6 md:h-6" />
                                   ) : (
-                                    <Icon className={cn("w-6 h-6", isActive && "animate-pulse")} />
+                                    <Icon className={cn("w-4 h-4 md:w-6 md:h-6", isActive && "animate-pulse")} />
                                   )}
                                 </motion.div>
                                 <div className="text-center">
                                   <p className={cn(
-                                    "text-[10px] font-black uppercase tracking-widest transition-colors mb-0.5",
+                                    "text-[7px] md:text-[10px] font-black uppercase tracking-widest transition-colors mb-0.5",
                                     isActive || isCompleted ? "text-slate-900" : "text-slate-300"
                                   )}>
                                     {step.label}
@@ -256,7 +381,7 @@ export default function OrderHistory({ userProfile }: OrderHistoryProps) {
                                     <motion.p 
                                       initial={{ opacity: 0, y: 5 }}
                                       animate={{ opacity: 1, y: 0 }}
-                                      className="text-[9px] font-bold text-primary-500 uppercase tracking-tight whitespace-nowrap"
+                                      className="text-[6px] md:text-[9px] font-bold text-primary-500 uppercase tracking-tight whitespace-nowrap hidden sm:block"
                                     >
                                       {step.description}
                                     </motion.p>
@@ -266,6 +391,7 @@ export default function OrderHistory({ userProfile }: OrderHistoryProps) {
                             );
                           })}
                         </div>
+
                       </div>
                     </div>
                   )}

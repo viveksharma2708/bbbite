@@ -1,8 +1,9 @@
 import React, { useState, useEffect, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { collection, onSnapshot, query, orderBy, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '../lib/firebase';
+import { db, handleFirestoreError, OperationType, auth } from '../lib/firebase';
 import { Product, Order, OrderStatus } from '../types';
-import { Plus, Trash2, Edit2, Package, CheckCircle2, Clock, Truck, ChevronRight, XCircle, User, MapPin, Filter, ShoppingBag, BarChart3, Settings, Zap, Search, Calendar, TrendingUp } from 'lucide-react';
+import { Plus, Trash2, Edit2, Package, CheckCircle2, Clock, Truck, ChevronRight, XCircle, User, MapPin, Filter, ShoppingBag, BarChart3, Settings, Zap, Search, Calendar, TrendingUp, LogOut, MessageSquare, Utensils } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { StoreSettings } from '../types';
@@ -274,124 +275,91 @@ export default function Admin() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row">
-      {/* Admin Sidebar */}
-      <div className="w-full lg:w-80 border-r border-slate-200 glass p-8 space-y-12">
-        <div className="space-y-4">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] pl-1">Control Hub</p>
-          <div className="space-y-2">
-            {[
-              { id: 'orders', label: 'Order Stream', icon: Package, count: pendingOrdersCount },
-              { id: 'products', label: 'Menu Factory', icon: ShoppingBag, count: products.length },
-              { id: 'customers', label: 'Dining Base', icon: User, count: customers.length },
-              { id: 'settings', label: 'Core Config', icon: Settings }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={cn(
-                  "w-full flex items-center justify-between p-4 rounded-2xl font-bold text-sm transition-all group",
-                  activeTab === tab.id 
-                    ? "bg-primary-600 text-white shadow-xl shadow-primary-200 glow-primary" 
-                    : "text-slate-500 hover:bg-white hover:text-slate-900"
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <tab.icon className={cn("w-5 h-5", activeTab === tab.id ? "text-white" : "text-slate-400 group-hover:text-primary-600")} />
-                  {tab.label}
-                </div>
-                {tab.count !== undefined && (
-                  <span className={cn(
-                    "text-[10px] px-2 py-1 rounded-lg",
-                    activeTab === tab.id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
-                  )}>
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+      {/* Dark Modern Header */}
+      <header className="bg-slate-900 px-4 md:px-6 py-3 md:py-6 border-b border-slate-800 flex items-center justify-between sticky top-0 z-[100] shadow-2xl">
+        <div className="flex items-center gap-2 md:gap-6">
+           <Link to="/" className="w-8 h-8 md:w-12 md:h-12 bg-primary-600 rounded-lg md:rounded-2xl flex items-center justify-center glow-primary hover:scale-110 transition-all">
+              <Utensils className="w-4 h-4 md:w-7 md:h-7 text-white" />
+           </Link>
+           <h1 className="text-lg md:text-3xl font-display font-black text-white tracking-tighter">
+             BB Bite <span className="hidden sm:inline text-primary-400">Admin Dashboard</span>
+             <span className="sm:hidden text-primary-400">Admin</span>
+           </h1>
+        </div>
+        <button 
+          onClick={() => auth.signOut()}
+          className="bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white px-3 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl font-black text-[8px] md:text-[10px] uppercase tracking-widest transition-all flex items-center gap-1.5 md:gap-2 border border-red-500/20 shadow-xl shadow-red-500/5 group"
+        >
+          <LogOut className="w-3 h-3 md:w-4 md:h-4 transition-transform group-hover:scale-110" />
+          <span className="hidden xs:inline">Logout</span>
+        </button>
+      </header>
+
+      {/* Navigation Sub-header */}
+      <div className="bg-white border-b border-slate-200 px-4 md:px-6 py-2 md:py-4 flex flex-col sm:flex-row sm:items-center justify-between sticky top-[61px] md:top-[89px] z-50 gap-4">
+        <div className="flex items-center gap-1 md:gap-2 overflow-x-auto no-scrollbar py-1">
+          {[
+            { id: 'orders', label: 'Orders', icon: Package },
+            { id: 'products', label: 'Menu', icon: ShoppingBag },
+            { id: 'customers', label: 'Dining', icon: User },
+            { id: 'settings', label: 'Config', icon: Settings }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={cn(
+                "flex items-center gap-2 md:gap-3 px-3 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl font-black text-[8px] md:text-[10px] uppercase tracking-widest transition-all whitespace-nowrap",
+                activeTab === tab.id 
+                  ? "bg-slate-900 text-white shadow-xl" 
+                  : "text-slate-400 hover:bg-slate-50 hover:text-slate-900"
+              )}
+            >
+              <tab.icon className="w-3 h-3 md:w-4 md:h-4" />
+              <span className="inline">{tab.label}</span>
+            </button>
+          ))}
         </div>
 
-        <div className="p-6 bg-primary-900 rounded-3xl space-y-6 relative overflow-hidden group">
-           <div className="absolute top-0 right-0 w-32 h-32 bg-primary-400/20 rounded-full -mr-16 -mt-16 blur-2xl group-hover:scale-150 transition-transform duration-1000" />
-           <div className="relative z-10 space-y-4">
-              <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center">
-                 <BarChart3 className="w-6 h-6 text-primary-400" />
-              </div>
-              <div>
-                 <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Gross Revenue</p>
-                 <p className="text-3xl font-display font-black text-white">₹{totalRevenue.toLocaleString()}</p>
-              </div>
-              <div className="flex items-center gap-2 text-emerald-400">
-                 <TrendingUp className="w-4 h-4" />
-                 <span className="text-[10px] font-bold uppercase tracking-widest">Stable Growth</span>
-              </div>
+        <div className="flex items-center gap-4 md:gap-6 divide-x divide-slate-200 justify-between sm:justify-start">
+           <div className="flex items-center gap-2 md:gap-3 sm:pl-6">
+              <p className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Gross Revenue</p>
+              <p className="text-sm md:text-2xl font-display font-black text-slate-900 leading-none">₹{totalRevenue.toLocaleString()}</p>
            </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 p-4 lg:p-12 overflow-y-auto max-h-screen no-scrollbar">
-        <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-1">
-             <h1 className="text-4xl md:text-5xl font-display font-black text-slate-900 tracking-tighter">
-               {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} <span className="text-primary-600">Overview</span>
-             </h1>
-             <p className="text-slate-500 font-medium">Managing the pulse of your culinary operations.</p>
-          </div>
-          <div className="flex items-center gap-4">
-            {activeTab === 'products' && (
-              <>
-                <button 
-                  onClick={seedMenu}
-                  className="bg-white border border-slate-200 text-slate-500 px-6 py-4 rounded-2xl font-bold text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-3"
-                >
-                  <Zap className="w-4 h-4" />
-                  Seed Menu
-                </button>
-                <button 
-                  onClick={() => setIsAddingProduct(true)}
-                  className="bg-slate-950 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl hover:bg-primary-600 hover:-translate-y-1 transition-all flex items-center gap-3 active:scale-95"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add New Dish
-                </button>
-              </>
-            )}
-          </div>
-        </header>
-
+      <main className="flex-1 p-3 md:p-8 max-w-[1600px] w-full mx-auto">
         <AnimatePresence mode="wait">
           {activeTab === 'orders' && (
             <motion.div
               key="orders"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-8"
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-4 md:space-y-6"
             >
-              {/* Order Filters */}
-              <div className="glass p-6 rounded-[2.5rem] flex flex-wrap items-center gap-6">
-                <div className="flex-1 relative group min-w-[200px]">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              {/* Order Filtering & Search */}
+              <div className="bg-white p-3 md:p-4 rounded-2xl md:rounded-3xl border border-slate-200 flex flex-col lg:flex-row items-stretch lg:items-center gap-3 md:gap-4 shadow-sm">
+                <div className="flex-1 min-w-0 md:min-w-[300px] relative group">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary-500" />
                   <input 
                     type="text" 
-                    placeholder="Search by ID, Address, Item..."
-                    className="w-full h-12 pl-12 pr-4 bg-slate-50 border-none rounded-2xl text-sm font-bold placeholder:text-slate-300 focus:ring-4 focus:ring-primary-500/10 transition-all outline-none"
+                    placeholder="Search by ID, User, Phone..."
+                    className="w-full h-10 md:h-12 pl-12 pr-4 bg-slate-50 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-widest placeholder:text-slate-300 outline-none focus:bg-white focus:ring-4 focus:ring-primary-500/10 transition-all"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
                 
-                <div className="flex items-center gap-4 bg-slate-50 p-1.5 rounded-2xl">
+                <div className="flex items-center gap-1 md:gap-2 bg-slate-50 p-1 rounded-lg md:rounded-xl overflow-x-auto no-scrollbar">
                   {(['pending', 'completed', 'cancelled', 'all'] as const).map((f) => (
                     <button
                       key={f}
                       onClick={() => setOrderFilter(f as any)}
                       className={cn(
-                        "px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
-                        orderFilter === f ? "bg-white text-slate-950 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                        "px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-[8px] md:text-[9px] font-black uppercase tracking-widest transition-all min-w-max",
+                        orderFilter === f ? "bg-white text-slate-900 shadow-xl" : "text-slate-400 hover:text-slate-600"
                       )}
                     >
                       {f}
@@ -399,212 +367,190 @@ export default function Admin() {
                   ))}
                 </div>
 
-                <div className="flex gap-4">
+                <div className="flex gap-2">
                   <select 
-                    className="h-12 px-6 bg-slate-50 rounded-2xl text-[10px] font-black uppercase tracking-widest border-none focus:ring-4 focus:ring-primary-500/10 transition-all outline-none"
+                    className="flex-1 lg:flex-none h-10 md:h-12 px-3 md:px-4 bg-slate-50 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-widest focus:bg-white transition-all outline-none border-none"
                     value={paymentFilter}
                     onChange={(e) => setPaymentFilter(e.target.value as any)}
                   >
-                    <option value="all">All Payments</option>
+                    <option value="all">Payments</option>
                     <option value="online">Online</option>
                     <option value="cod">COD</option>
-                  </select>
-
-                  <select 
-                    className="h-12 px-6 bg-slate-50 rounded-2xl text-[10px] font-black uppercase tracking-widest border-none focus:ring-4 focus:ring-primary-500/10 transition-all outline-none"
-                    value={dateFilter}
-                    onChange={(e) => setDateFilter(e.target.value as any)}
-                  >
-                    <option value="all">All Time</option>
-                    <option value="today">Today</option>
-                    <option value="week">Past Week</option>
-                    <option value="custom">Custom Range</option>
                   </select>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                {filteredOrders.length === 0 ? (
-                  <div className="col-span-full h-96 flex flex-col items-center justify-center text-center space-y-6">
-                    <div className="w-32 h-32 bg-slate-100 rounded-full flex items-center justify-center">
-                      <Package className="w-12 h-12 text-slate-300" />
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xl font-bold text-slate-900">No signals matching filters</p>
-                      <p className="text-slate-400 font-medium">Try adjusting your search or filters.</p>
-                    </div>
-                  </div>
-                ) : (
-                  filteredOrders.map((order) => (
-                    <motion.div
-                      layout
-                      key={order.id}
-                      className="bg-white border border-slate-100 rounded-[3rem] p-8 space-y-8 relative group hover:shadow-2xl hover:shadow-primary-500/5 transition-all duration-500"
-                    >
-                      <button 
-                        onClick={(e) => deleteOrder(order.id!, e)}
-                        className="absolute top-8 right-8 p-3 bg-red-50 text-red-500 rounded-2xl opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-
-                      <div className="flex items-center justify-between">
-                         <div className="space-y-1">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Order Sequence</p>
-                            <h3 className="text-2xl font-display font-black text-slate-900 tracking-tighter">#{order.id?.slice(-8).toUpperCase()}</h3>
-                         </div>
-                         <div className="flex items-center gap-3">
-                            <div className="text-right">
-                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Revenue</p>
-                               <p className="text-2xl font-display font-black text-primary-600">₹{order.totalAmount}</p>
-                            </div>
-                            <div className="w-12 h-12 bg-primary-50 rounded-2xl flex items-center justify-center">
-                               {getStatusIcon(order.status)}
-                            </div>
-                         </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-8 py-6 border-y border-slate-50">
-                         <div className="space-y-4">
-                            <div className="flex items-center gap-3">
-                               <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
-                                  <User className="w-5 h-5" />
-                               </div>
-                               <div className="flex flex-col">
-                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-tight">Identity</span>
-                                  <span className="text-xs font-bold text-slate-900 truncate max-w-[120px]">{order.userId}</span>
-                               </div>
-                            </div>
-                            <div className="flex items-center gap-3">
-                               <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
-                                  <MapPin className="w-5 h-5" />
-                               </div>
-                               <div className="flex flex-col">
-                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-tight">Deployment Point</span>
-                                  <span className="text-xs font-bold text-slate-900 truncate max-w-[120px]">{order.deliveryAddress}</span>
-                               </div>
-                            </div>
-                         </div>
-
-                         <div className="space-y-4">
-                            <div className="flex items-center gap-3">
-                               <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
-                                  <Clock className="w-5 h-5" />
-                               </div>
-                               <div className="flex flex-col">
-                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-tight">Logged At</span>
-                                  <span className="text-xs font-bold text-slate-900">
-                                     {order.createdAt?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              {/* Main Orders Table */}
+                <div className="overflow-x-auto no-scrollbar">
+                  <table className="w-full text-left border-collapse min-w-[900px]">
+                    <thead>
+                      <tr className="bg-[#56a756] text-white">
+                        <th className="px-4 md:px-5 py-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest">ID</th>
+                        <th className="px-4 md:px-5 py-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest">Client</th>
+                        <th className="px-4 md:px-5 py-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest">Name</th>
+                        <th className="px-4 md:px-5 py-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest">Details</th>
+                        <th className="px-4 md:px-5 py-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest">Address</th>
+                        <th className="px-4 md:px-5 py-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest">Order Hash</th>
+                        <th className="px-4 md:px-5 py-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest">Total</th>
+                        <th className="px-4 md:px-5 py-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-center">Status</th>
+                        <th className="px-4 md:px-5 py-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-center">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredOrders.map((order) => (
+                        <tr key={order.id} className="hover:bg-slate-50/50 transition-colors group">
+                          <td className="px-4 md:px-5 py-4 font-mono text-[9px] md:text-[10px] font-bold text-slate-400">
+                             #{order.id?.slice(-6).toUpperCase()}
+                          </td>
+                          <td className="px-4 md:px-5 py-4 text-[10px] md:text-xs font-bold text-slate-500">
+                             {order.userId.split('@')[0]}
+                          </td>
+                          <td className="px-4 md:px-5 py-4">
+                             <p className="text-[10px] md:text-xs font-black text-slate-900 leading-tight">{order.customerName || 'Guest'}</p>
+                             <p className="text-[8px] md:text-[9px] font-bold text-slate-400 mt-0.5">{order.createdAt?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                          </td>
+                          <td className="px-4 md:px-5 py-4">
+                             <div className="flex flex-col">
+                               <p className="text-[10px] md:text-xs font-black text-primary-600 leading-tight underline decoration-primary-200 underline-offset-2">{order.customerPhone}</p>
+                               <p className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{order.course || 'Regular'}</p>
+                             </div>
+                          </td>
+                          <td className="px-4 md:px-5 py-4">
+                             <div className="flex items-center gap-1.5 min-w-[120px]">
+                                <MapPin className="w-3 h-3 text-slate-300 shrink-0" />
+                                <p className="text-[10px] md:text-xs font-medium text-slate-500 line-clamp-1">{order.deliveryAddress}</p>
+                             </div>
+                          </td>
+                          <td className="px-4 md:px-5 py-4">
+                             <div className="flex flex-wrap gap-1 max-w-[180px]">
+                                {order.items.map((item, idx) => (
+                                  <span key={idx} className="px-1.5 py-0.5 bg-slate-50 border border-slate-100 rounded text-[8px] md:text-[9px] font-black text-slate-600">
+                                    {item.name} ×{item.quantity}
                                   </span>
-                               </div>
-                            </div>
-                            <div className="flex items-center gap-3">
-                               <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
-                                  <CheckCircle2 className="w-5 h-5" />
-                               </div>
-                               <div className="flex flex-col">
-                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-tight">Settlement</span>
-                                  <span className={cn(
-                                    "text-xs font-bold uppercase tracking-widest",
-                                    order.paymentStatus === 'paid' ? "text-emerald-500" : "text-amber-500"
-                                  )}>{order.paymentMethod} • {order.paymentStatus}</span>
-                               </div>
-                            </div>
-                         </div>
-                      </div>
-
-                      <div className="space-y-4">
-                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ordered Entities</p>
-                         <div className="flex flex-wrap gap-3">
-                            {order.items.map((item, i) => (
-                              <div key={i} className="flex items-center gap-3 bg-slate-50 p-2 pr-4 rounded-2xl border border-slate-100">
-                                 <img src={item.imageUrl} className="w-10 h-10 rounded-xl object-cover" />
-                                 <div>
-                                    <p className="text-xs font-bold text-slate-900">{item.name}</p>
-                                    <p className="text-[10px] font-medium text-slate-400">Qty: {item.quantity}</p>
-                                 </div>
+                                ))}
+                             </div>
+                          </td>
+                          <td className="px-4 md:px-5 py-4 text-sm font-black text-slate-900 font-display whitespace-nowrap">
+                             ₹{order.totalAmount}
+                          </td>
+                          <td className="px-4 md:px-5 py-4">
+                            <div className="flex flex-col gap-2 min-w-[180px]">
+                              <div className="flex items-center justify-between px-1">
+                                <span className={cn(
+                                  "inline-block px-1.5 py-0.5 rounded text-[7px] font-black uppercase tracking-widest",
+                                  order.status === 'placed' ? "bg-amber-50 text-amber-600 border border-amber-100" :
+                                  order.status === 'preparing' ? "bg-sky-50 text-sky-600 border border-sky-100" :
+                                  order.status === 'out_for_delivery' ? "bg-purple-50 text-purple-600 border border-purple-100" :
+                                  order.status === 'delivered' ? "bg-emerald-50 text-emerald-600 border border-emerald-100" :
+                                  "bg-red-50 text-red-600 border border-red-100"
+                                )}>
+                                  {order.status.replace(/_/g, ' ')}
+                                </span>
+                                <span className="text-[8px] font-black text-slate-400">
+                                  {order.status === 'delivered' ? '100%' : 
+                                   order.status === 'out_for_delivery' ? '75%' :
+                                   order.status === 'preparing' ? '50%' :
+                                   order.status === 'placed' ? '25%' : '0%'}
+                                </span>
                               </div>
-                            ))}
-                         </div>
-                      </div>
+                              <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden flex gap-0.5 p-0.5">
+                                <div className={cn("h-full rounded-full transition-all duration-500", 
+                                  ['placed', 'preparing', 'out_for_delivery', 'delivered'].includes(order.status) ? "w-1/4 bg-amber-400" : "w-0")} />
+                                <div className={cn("h-full rounded-full transition-all duration-500", 
+                                  ['preparing', 'out_for_delivery', 'delivered'].includes(order.status) ? "w-1/4 bg-sky-400" : "w-0")} />
+                                <div className={cn("h-full rounded-full transition-all duration-500", 
+                                  ['out_for_delivery', 'delivered'].includes(order.status) ? "w-1/4 bg-purple-400" : "w-0")} />
+                                <div className={cn("h-full rounded-full transition-all duration-500", 
+                                  ['delivered'].includes(order.status) ? "w-1/4 bg-emerald-400" : "w-0")} />
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 md:px-5 py-4">
+                            <div className="flex items-center justify-center gap-2">
+                              <select 
+                                className="bg-white border border-slate-200 rounded-md px-1 py-1 text-[8px] md:text-[10px] font-black uppercase tracking-widest outline-none focus:border-primary-500 transition-colors"
+                                value={order.status}
+                                onChange={(e) => updateOrderStatus(order.id!, e.target.value as OrderStatus)}
+                              >
+                                <option value="placed">Pending</option>
+                                <option value="preparing">Prep</option>
+                                <option value="out_for_delivery">Out</option>
+                                <option value="delivered">Done</option>
+                                <option value="cancelled">X</option>
+                              </select>
+                              <button 
+                                onClick={(e) => deleteOrder(order.id!, e)}
+                                className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                                title="Delete Order"
+                              >
+                                <Trash2 className="w-3 h-3 md:w-3.5 md:h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-                      <div className="flex flex-wrap gap-2 pt-4">
-                         {[
-                           { label: 'Prepare', status: 'preparing' },
-                           { label: 'Dispatch', status: 'out_for_delivery' },
-                           { label: 'Complete', status: 'delivered' },
-                           { label: 'Void', status: 'cancelled' }
-                         ].map((s) => (
-                           <button
-                             key={s.status}
-                             onClick={() => updateOrderStatus(order.id!, s.status as OrderStatus)}
-                             className={cn(
-                               "px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
-                               order.status === s.status 
-                                ? "bg-primary-600 text-white shadow-lg shadow-primary-200" 
-                                : "bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-slate-900"
-                             )}
-                           >
-                             {s.label}
-                           </button>
-                         ))}
-                      </div>
-                    </motion.div>
-                  ))
-                )}
-              </div>
             </motion.div>
           )}
 
           {activeTab === 'products' && (
             <motion.div
               key="products"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8"
+              exit={{ opacity: 0, y: -10 }}
+              className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6"
             >
-              {products.map((product) => (
-                <div key={product.id} className="bg-white border border-slate-100 rounded-[3rem] p-6 space-y-6 group hover:shadow-2xl hover:shadow-primary-500/5 transition-all duration-500 flex flex-col">
-                  <div className="relative aspect-[4/3] rounded-[2rem] overflow-hidden bg-slate-50">
-                    <img 
-                      src={product.imageUrl} 
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" 
-                    />
-                    <div className="absolute top-4 right-4 flex gap-2">
-                       <button 
-                        onClick={() => deleteProduct(product.id!)}
-                        className="w-10 h-10 bg-white shadow-lg rounded-xl flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white transition-all transform md:translate-y-12 group-hover:translate-y-0 duration-300"
-                       >
-                         <Trash2 className="w-4 h-4" />
-                       </button>
-                    </div>
-                  </div>
+              {/* Add New Item Card */}
+              <button
+                onClick={() => setIsAddingProduct(true)}
+                className="bg-white border-2 border-dashed border-slate-200 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-5 flex flex-col items-center justify-center gap-3 md:gap-4 group hover:border-primary-500 hover:bg-primary-50/30 transition-all duration-300"
+              >
+                <div className="w-10 h-10 md:w-16 md:h-16 bg-primary-100 rounded-xl md:rounded-3xl flex items-center justify-center text-primary-600 group-hover:scale-110 transition-transform shadow-xl shadow-primary-500/10">
+                  <Plus className="w-5 h-5 md:w-8 md:h-8" />
+                </div>
+                <div className="text-center">
+                  <p className="text-xs md:text-lg font-display font-black text-slate-900">Add Item</p>
+                  <p className="text-[7px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5 md:mt-1">Expansion</p>
+                </div>
+              </button>
 
-                  <div className="space-y-4 px-2 flex-1 flex flex-col">
+              {products.map((product) => (
+                <div key={product.id} className="bg-white border border-slate-200 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 space-y-3 md:space-y-6 group hover:shadow-2xl hover:shadow-primary-500/5 transition-all duration-500">
+                  <div className="relative aspect-square md:aspect-[4/3] rounded-[1.2rem] md:rounded-[2rem] overflow-hidden bg-slate-100">
+                    <img src={product.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+                    <button 
+                      onClick={() => deleteProduct(product.id!)}
+                      className="absolute top-2 md:top-4 right-2 md:right-4 w-7 h-7 md:w-10 md:h-10 bg-white/90 backdrop-blur-md rounded-lg md:rounded-xl flex items-center justify-center text-red-500 shadow-xl opacity-0 group-hover:opacity-100 transition-all hover:bg-red-600 hover:text-white"
+                    >
+                      <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
+                    </button>
+                  </div>
+                  <div className="space-y-2 md:space-y-4">
                     <div className="flex items-center justify-between">
-                       <span className="text-[10px] font-black text-primary-500 uppercase tracking-widest">{product.category}</span>
-                       <div className="flex items-center gap-2">
-                          <div className={cn("w-2 h-2 rounded-full", product.isAvailable ? "bg-emerald-500 animate-pulse" : "bg-slate-300")} />
-                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{product.isAvailable ? 'Active' : 'Hidden'}</span>
+                       <span className="text-[7px] md:text-[9px] font-black text-primary-600 uppercase tracking-widest bg-primary-50 px-1.5 md:px-3 py-0.5 md:py-1 rounded md:rounded-lg">{product.category}</span>
+                       <div className="flex items-center gap-1 md:gap-1.5">
+                          <div className={cn("w-1.5 h-1.5 md:w-2 md:h-2 rounded-full", product.isAvailable ? "bg-emerald-500" : "bg-slate-300")} />
+                          <span className="text-[7px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest">{product.isAvailable ? 'Live' : 'Hidden'}</span>
                        </div>
                     </div>
-                    
-                    <div className="space-y-1">
-                       <h3 className="text-xl font-display font-black text-slate-900 tracking-tight">{product.name}</h3>
-                       <p className="text-xs font-medium text-slate-500 line-clamp-2">{product.description}</p>
+                    <div>
+                       <h3 className="text-xs md:text-xl font-display font-black text-slate-900 leading-tight line-clamp-1">{product.name}</h3>
+                       <p className="text-[8px] md:text-xs font-medium text-slate-500 line-clamp-1 mt-0.5 md:mt-1 hidden sm:block">{product.description}</p>
                     </div>
-
-                    <div className="flex items-center justify-between pt-4 border-t border-slate-50 mt-auto">
-                       <p className="text-2xl font-display font-black text-slate-900">₹{product.price}</p>
+                    <div className="flex items-center justify-between pt-2 md:pt-4 border-t border-slate-50">
+                       <p className="text-sm md:text-2xl font-display font-black text-slate-950 font-display">₹{product.price}</p>
                        <button
                          onClick={() => toggleAvailability(product)}
                          className={cn(
-                           "px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all",
-                           product.isAvailable ? "bg-white text-slate-500 border-slate-200 hover:bg-slate-50" : "bg-primary-600 text-white border-primary-600 shadow-xl shadow-primary-200"
+                           "px-2 md:px-5 py-1 md:py-2.5 rounded-lg md:rounded-xl text-[7px] md:text-[9px] font-black uppercase tracking-widest border transition-all",
+                           product.isAvailable ? "bg-white text-slate-500 border-slate-200 hover:bg-slate-50" : "bg-primary-600 text-white border-primary-600"
                          )}
                        >
-                         {product.isAvailable ? 'Hide' : 'Authorize'}
+                         {product.isAvailable ? 'Hide' : 'Show'}
                        </button>
                     </div>
                   </div>
@@ -616,46 +562,44 @@ export default function Admin() {
           {activeTab === 'customers' && (
              <motion.div
                 key="customers"
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="space-y-8"
+                exit={{ opacity: 0, y: -10 }}
+                className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm"
              >
-                <div className="bg-white border border-slate-100 rounded-[3rem] overflow-hidden shadow-sm">
-                   <div className="overflow-x-auto">
-                     <table className="w-full text-left">
-                        <thead>
-                           <tr className="bg-slate-50 border-b border-slate-100">
-                              <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">Customer Reference</th>
-                              <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right whitespace-nowrap">Transactions</th>
-                              <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right whitespace-nowrap">Yield</th>
-                              <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right whitespace-nowrap">Last Sync</th>
+                <div className="overflow-x-auto">
+                   <table className="w-full text-left">
+                      <thead>
+                         <tr className="bg-[#56a756] text-white">
+                            <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest">Customer Reference</th>
+                            <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-right">Transactions</th>
+                            <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-right">Yield</th>
+                            <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-right">Last Purchase</th>
+                         </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-50">
+                         {customers.map((c) => (
+                           <tr key={c.uid} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="px-10 py-6">
+                                 <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-primary-50 rounded-2xl flex items-center justify-center text-primary-600 font-black text-xs">
+                                       {c.uid.slice(0, 2).toUpperCase()}
+                                    </div>
+                                    <div>
+                                       <p className="text-xs font-black text-slate-900 truncate max-w-[200px]">{c.uid}</p>
+                                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Registered Member</p>
+                                    </div>
+                                 </div>
+                              </td>
+                              <td className="px-10 py-6 text-right font-black text-slate-700 text-sm">{c.orderCount} Orders</td>
+                              <td className="px-10 py-6 text-right font-display font-black text-primary-600 text-lg">₹{c.totalSpent}</td>
+                              <td className="px-10 py-6 text-right text-[10px] font-black text-slate-400 uppercase">
+                                 {c.lastOrder?.toDate().toLocaleDateString() || 'N/A'}
+                              </td>
                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                           {customers.map((c) => (
-                             <tr key={c.uid} className="hover:bg-slate-50/50 transition-colors">
-                                <td className="px-10 py-6">
-                                   <div className="flex items-center gap-4">
-                                      <div className="w-12 h-12 bg-primary-50 rounded-2xl flex items-center justify-center text-primary-600 font-black text-sm">
-                                         {c.uid.slice(0, 2).toUpperCase()}
-                                      </div>
-                                      <div>
-                                         <p className="text-sm font-black text-slate-900 truncate max-w-[150px]">{c.uid}</p>
-                                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">ID Verified</p>
-                                      </div>
-                                   </div>
-                                </td>
-                                <td className="px-10 py-6 text-right font-black text-slate-700">{c.orderCount} Orders</td>
-                                <td className="px-10 py-6 text-right font-display font-black text-primary-600 text-lg">₹{c.totalSpent}</td>
-                                <td className="px-10 py-6 text-right text-xs font-bold text-slate-400 italic">
-                                   {c.lastOrder?.toDate().toLocaleDateString() || 'N/A'}
-                                </td>
-                             </tr>
-                           ))}
-                        </tbody>
-                     </table>
-                   </div>
+                         ))}
+                      </tbody>
+                   </table>
                 </div>
              </motion.div>
           )}
@@ -663,81 +607,83 @@ export default function Admin() {
           {activeTab === 'settings' && (
             <motion.div
               key="settings"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="max-w-4xl space-y-8"
+              exit={{ opacity: 0, y: -10 }}
+              className="max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8"
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                 <div className="bg-white border border-slate-100 rounded-[3rem] p-10 space-y-8 shadow-sm">
+               <div className="bg-white border border-slate-200 rounded-[3rem] p-10 space-y-8 shadow-sm">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-primary-50 rounded-2xl flex items-center justify-center text-primary-600">
+                       <Zap className="w-6 h-6" />
+                    </div>
                     <div>
-                       <h3 className="text-2xl font-display font-black text-slate-900 tracking-tighter">Kitchen Protocol</h3>
-                       <p className="text-slate-400 text-xs font-medium mt-1">Operational toggle for order intake.</p>
+                      <h3 className="text-2xl font-display font-black text-slate-900 tracking-tighter">Kitchen Protocol</h3>
+                      <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Real-time status control</p>
                     </div>
+                  </div>
 
-                    <div className="space-y-4">
-                       <button
-                         onClick={() => updateSettings({ isAcceptingOrders: !settings.isAcceptingOrders })}
-                         className={cn(
-                           "w-full h-20 rounded-2xl flex items-center justify-between px-8 border transition-all",
-                           settings.isAcceptingOrders 
-                            ? "bg-emerald-50 border-emerald-100 text-emerald-700" 
-                            : "bg-red-50 border-red-100 text-red-700"
-                         )}
-                       >
-                         <div className="flex items-center gap-4">
-                            <div className={cn("w-3 h-3 rounded-full", settings.isAcceptingOrders ? "bg-emerald-500 animate-pulse" : "bg-red-500")} />
-                            <span className="font-black text-[10px] uppercase tracking-[0.2em]">{settings.isAcceptingOrders ? 'Accepting' : 'Paused'}</span>
-                         </div>
-                         <div className={cn("w-12 h-6 rounded-full relative p-1 transition-colors", settings.isAcceptingOrders ? "bg-emerald-500" : "bg-red-200")}>
-                            <div className={cn("w-4 h-4 bg-white rounded-full transition-transform", settings.isAcceptingOrders ? "translate-x-6" : "translate-x-0")} />
-                         </div>
-                       </button>
-                    </div>
-
-                    <div className="space-y-4">
-                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Prep Time Estimate</label>
-                       <input 
-                         type="text" 
-                         value={settings.estimatedPrepTime}
-                         onChange={(e) => updateSettings({ estimatedPrepTime: e.target.value })}
-                         className="w-full h-16 bg-slate-50 border-transparent rounded-2xl px-6 font-bold text-slate-800 focus:bg-white focus:ring-4 focus:ring-primary-500/10 transition-all outline-none border border-slate-100"
-                         placeholder="e.g. 20-30 mins"
-                       />
-                    </div>
-                 </div>
-
-                 <div className="bg-white border border-slate-100 rounded-[3rem] p-10 space-y-8 shadow-sm">
-                    <div>
-                       <h3 className="text-2xl font-display font-black text-slate-900 tracking-tighter">Communications</h3>
-                       <p className="text-slate-400 text-xs font-medium mt-1">Global announcement for dining users.</p>
-                    </div>
-
-                    <div className="space-y-4">
-                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Banner Announcement</label>
-                       <textarea 
-                         rows={4}
-                         value={settings.announcement}
-                         onChange={(e) => updateSettings({ announcement: e.target.value })}
-                         className="w-full bg-slate-50 border-transparent rounded-3xl p-6 font-bold text-slate-800 focus:bg-white focus:ring-4 focus:ring-primary-500/10 transition-all outline-none border border-slate-100 resize-none"
-                         placeholder="Enter broadcast message..."
-                       />
-                    </div>
-
-                    <div className="p-6 bg-slate-50 rounded-2xl flex items-center gap-4 border border-slate-100">
-                       <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center">
-                          <Settings className="w-5 h-5 text-slate-400" />
+                  <div className="space-y-4">
+                     <button
+                       onClick={() => updateSettings({ isAcceptingOrders: !settings.isAcceptingOrders })}
+                       className={cn(
+                         "w-full h-20 rounded-2xl flex items-center justify-between px-8 border transition-all shadow-xl group shadow-slate-200/50",
+                         settings.isAcceptingOrders 
+                          ? "bg-slate-900 border-slate-900 text-white" 
+                          : "bg-red-50 border-red-100 text-red-700 shadow-red-200/20"
+                       )}
+                     >
+                       <div className="flex items-center gap-4">
+                          <div className={cn("w-3 h-3 rounded-full", settings.isAcceptingOrders ? "bg-emerald-500 animate-pulse" : "bg-red-500")} />
+                          <span className="font-black text-[10px] uppercase tracking-[0.2em]">{settings.isAcceptingOrders ? 'Accepting Orders' : 'Delivery Paused'}</span>
                        </div>
-                       <p className="text-[10px] font-bold text-slate-400 uppercase leading-relaxed max-w-[200px]">Changes are synced automatically in real-time with the production database.</p>
+                       <div className={cn("w-12 h-6 rounded-full relative p-1 transition-colors", settings.isAcceptingOrders ? "bg-primary-600" : "bg-red-200")}>
+                          <div className={cn("w-4 h-4 bg-white rounded-full transition-transform", settings.isAcceptingOrders ? "translate-x-6" : "translate-x-0")} />
+                       </div>
+                     </button>
+                  </div>
+
+                  <div className="space-y-4">
+                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Prep Time Estimate</label>
+                     <input 
+                       type="text" 
+                       value={settings.estimatedPrepTime}
+                       onChange={(e) => setSettings({...settings, estimatedPrepTime: e.target.value})}
+                       onBlur={() => updateSettings({ estimatedPrepTime: settings.estimatedPrepTime })}
+                       className="w-full h-16 bg-slate-50 border-slate-200 rounded-2xl px-6 font-bold text-slate-800 focus:bg-white focus:ring-4 focus:ring-primary-500/10 transition-all outline-none border"
+                     />
+                  </div>
+               </div>
+
+               <div className="bg-white border border-slate-200 rounded-[3rem] p-10 space-y-8 shadow-sm">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
+                       <MessageSquare className="w-6 h-6" />
                     </div>
-                 </div>
-              </div>
+                    <div>
+                      <h3 className="text-2xl font-display font-black text-slate-900 tracking-tighter">Communications</h3>
+                      <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Broadcast announcements</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Banner Announcement</label>
+                     <textarea 
+                       rows={4}
+                       value={settings.announcement}
+                       onChange={(e) => setSettings({...settings, announcement: e.target.value})}
+                       onBlur={() => updateSettings({ announcement: settings.announcement })}
+                       className="w-full bg-slate-50 border-slate-200 rounded-[2rem] p-6 font-bold text-slate-800 focus:bg-white focus:ring-4 focus:ring-primary-500/10 transition-all outline-none border resize-none"
+                       placeholder="Enter broadcast message..."
+                     />
+                  </div>
+               </div>
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </main>
 
-      {/* Add Product Modal */}
+      {/* Add Product Modal (Keep existing logic but styled) */}
       <AnimatePresence>
         {isAddingProduct && (
           <>
@@ -746,64 +692,54 @@ export default function Admin() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsAddingProduct(false)}
-              className="fixed inset-0 bg-slate-900/60 backdrop-blur-xl z-[150]"
+              className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[200]"
             />
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-2xl bg-white rounded-[3.5rem] shadow-3xl z-[160] overflow-hidden"
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-xl bg-white rounded-[3rem] shadow-3xl z-[210] overflow-hidden"
             >
-              <div className="p-10 border-b border-slate-50 flex items-center justify-between">
-                <div>
-                   <h2 className="text-3xl font-display font-black text-slate-900 tracking-tighter">Add New Dish</h2>
-                   <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Define the culinary experience</p>
-                </div>
-                <button 
-                  onClick={() => setIsAddingProduct(false)}
-                  className="w-14 h-14 bg-slate-50 hover:bg-slate-100 rounded-2xl flex items-center justify-center transition-colors"
-                >
-                  <XCircle className="w-6 h-6 text-slate-300" />
-                </button>
+              <div className="p-8 border-b border-slate-50 flex items-center justify-between">
+                <h2 className="text-2xl font-display font-black text-slate-900 tracking-tighter">New Item Entry</h2>
+                <button onClick={() => setIsAddingProduct(false)} className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center"><XCircle className="w-6 h-6 text-slate-300" /></button>
               </div>
 
-              <form onSubmit={addProduct} className="p-10 space-y-8 overflow-y-auto max-h-[70vh] no-scrollbar">
-                <div className="grid grid-cols-2 gap-8">
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Dish Identity</label>
+              <form onSubmit={addProduct} className="p-8 space-y-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Name</label>
                     <input 
                       required
                       type="text" 
-                      placeholder="Gourmet Burger..."
-                      className="w-full h-16 bg-slate-50 border-none rounded-2xl px-6 font-bold text-slate-800 focus:ring-4 focus:ring-primary-500/10 transition-all outline-none shadow-sm"
+                      className="w-full h-14 bg-slate-50 rounded-xl px-5 font-bold outline-none focus:ring-2 focus:ring-primary-500/20"
                       value={newProduct.name}
                       onChange={e => setNewProduct({...newProduct, name: e.target.value})}
                     />
                   </div>
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Price Point (INR)</label>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Price (₹)</label>
                     <input 
                       required
                       type="number" 
-                      placeholder="299"
-                      className="w-full h-16 bg-slate-50 border-none rounded-2xl px-6 font-bold text-slate-800 focus:ring-4 focus:ring-primary-500/10 transition-all outline-none shadow-sm"
+                      className="w-full h-14 bg-slate-50 rounded-xl px-5 font-bold outline-none focus:ring-2 focus:ring-primary-500/20"
                       value={newProduct.price}
                       onChange={e => setNewProduct({...newProduct, price: parseFloat(e.target.value)})}
                     />
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Collection</label>
-                  <div className="flex flex-wrap gap-3">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Category</label>
+                  <div className="flex gap-2">
                     {['Breakfast', 'Lunch', 'Snacks', 'Drinks'].map(cat => (
                       <button
                         key={cat}
                         type="button"
                         onClick={() => setNewProduct({...newProduct, category: cat})}
                         className={cn(
-                          "px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all",
-                          newProduct.category === cat ? "bg-slate-950 text-white border-slate-950 shadow-xl" : "bg-white text-slate-400 border-slate-100"
+                          "px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all",
+                          newProduct.category === cat ? "bg-slate-900 text-white" : "bg-slate-50 text-slate-400"
                         )}
                       >
                         {cat}
@@ -812,25 +748,23 @@ export default function Admin() {
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Visual Asset URL</label>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Image URL</label>
                   <input 
                     required
                     type="url" 
-                    placeholder="https://images.unsplash.com/..."
-                    className="w-full h-16 bg-slate-50 border-none rounded-2xl px-6 font-bold text-slate-800 focus:ring-4 focus:ring-primary-500/10 transition-all outline-none shadow-sm"
+                    className="w-full h-14 bg-slate-50 rounded-xl px-5 font-bold outline-none focus:ring-2 focus:ring-primary-500/20"
                     value={newProduct.imageUrl}
                     onChange={e => setNewProduct({...newProduct, imageUrl: e.target.value})}
                   />
                 </div>
 
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Flavor Profile</label>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Description</label>
                   <textarea 
                     required
                     rows={3}
-                    placeholder="Describe the layers of taste..."
-                    className="w-full bg-slate-50 border-none rounded-[2rem] p-6 font-bold text-slate-800 focus:ring-4 focus:ring-primary-500/10 transition-all outline-none shadow-sm resize-none"
+                    className="w-full bg-slate-50 rounded-xl p-5 font-bold outline-none focus:ring-2 focus:ring-primary-500/20 resize-none"
                     value={newProduct.description}
                     onChange={e => setNewProduct({...newProduct, description: e.target.value})}
                   />
@@ -839,19 +773,9 @@ export default function Admin() {
                 <button 
                   type="submit"
                   disabled={isSubmitting}
-                  className={cn(
-                    "w-full h-20 bg-primary-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] shadow-2xl shadow-primary-200 hover:bg-primary-700 hover:scale-[1.02] active:scale-98 transition-all flex items-center justify-center gap-3",
-                    isSubmitting && "opacity-70 cursor-not-allowed"
-                  )}
+                  className="w-full h-16 bg-primary-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-primary-200"
                 >
-                  {isSubmitting ? (
-                    <>
-                      <Clock className="w-5 h-5 animate-spin" />
-                      Adding...
-                    </>
-                  ) : (
-                    'Add New Dish'
-                  )}
+                  {isSubmitting ? 'Adding...' : 'Launch Product'}
                 </button>
               </form>
             </motion.div>

@@ -30,18 +30,20 @@ export default function Navbar({
           <Menu className="w-6 h-6" />
         </button>
 
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-3 shrink-0 group">
-          <div className="w-12 h-12 bg-primary-600 rounded-[1.25rem] flex items-center justify-center glow-primary group-hover:scale-110 transition-all duration-500">
-            <Utensils className="w-6 h-6 text-white" />
+        <Link to="/" className="flex items-center gap-2 md:gap-4 shrink-0 group">
+          <div className="w-10 h-10 md:w-14 md:h-14 bg-primary-600 rounded-xl md:rounded-2xl flex items-center justify-center glow-primary group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-xl shadow-primary-500/20">
+            <Utensils className="w-5 h-5 md:w-7 md:h-7 text-white" />
           </div>
-          <div className="hidden sm:block text-slate-900 font-display font-black text-2xl md:text-3xl tracking-tighter leading-none">
-            BB<span className="text-primary-600"> Bite</span>
+          <div className="flex flex-col">
+            <span className="text-slate-900 font-display font-black text-xl md:text-3xl tracking-tighter leading-none group-hover:text-primary-600 transition-colors">
+              BB<span className="text-primary-600"> Bite</span>
+            </span>
+            <span className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] leading-none mt-1">Campus Dining</span>
           </div>
         </Link>
 
         {/* Location Selector (Desktop Only) */}
-        <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer shrink-0">
+        <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer shrink-0">
           <MapPin className="w-4 h-4 text-primary-600" />
           <div className="text-left">
             <p className="text-[10px] font-bold text-primary-600 uppercase tracking-widest leading-none">Deliver to</p>
@@ -50,21 +52,21 @@ export default function Navbar({
         </div>
 
         {/* Search Bar */}
-        <div className="flex-1 relative group max-w-2xl">
-          <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-600 transition-colors">
-            <Search className="w-5 h-5" />
+        <div className="flex-1 relative group md:max-w-xl max-w-[150px] sm:max-w-none">
+          <div className="absolute left-3 md:left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-600 transition-colors">
+            <Search className="w-4 h-4 md:w-5 md:h-5" />
           </div>
           <input 
             type="text" 
-            placeholder='Search delicacies...'
-            className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl pl-14 pr-6 text-sm font-bold text-slate-800 placeholder:text-slate-300 focus:bg-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-100 transition-all outline-none"
+            placeholder='Search...'
+            className="w-full h-10 md:h-14 bg-slate-50 border border-slate-100 rounded-xl md:rounded-2xl pl-10 md:pl-14 pr-4 md:pr-6 text-xs md:text-sm font-bold text-slate-800 placeholder:text-slate-300 focus:bg-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-100 transition-all outline-none"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2 md:gap-4 shrink-0">
+        <div className="flex items-center gap-1 md:gap-4 shrink-0">
           {userProfile ? (
             <Link to={userProfile.role === 'admin' ? '/admin' : '/orders'} className="flex flex-col items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-2xl text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-all group relative">
               <User className="w-6 h-6 group-hover:scale-110 transition-transform" />

@@ -30,7 +30,7 @@ export default function Sidebar({ userProfile, isOpen, onClose }: SidebarProps) 
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] lg:hidden"
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100]"
           />
         )}
       </AnimatePresence>
@@ -40,7 +40,7 @@ export default function Sidebar({ userProfile, isOpen, onClose }: SidebarProps) 
         initial={false}
         animate={{ x: isOpen ? 0 : '-100%' }}
         className={cn(
-          "fixed top-0 left-0 h-full w-72 bg-white z-[101] shadow-2xl flex flex-col transition-transform lg:translate-x-0 lg:static lg:shadow-none lg:border-r lg:border-slate-200",
+          "fixed top-0 left-0 h-full w-72 bg-white z-[101] shadow-2xl flex flex-col transition-all",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >

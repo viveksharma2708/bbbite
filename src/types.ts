@@ -32,6 +32,9 @@ export interface Order {
   totalAmount: number;
   status: OrderStatus;
   deliveryAddress: string;
+  customerName: string;
+  customerPhone: string;
+  course: string;
   paymentMethod: 'online' | 'cod';
   paymentStatus: 'pending' | 'paid';
   estimatedDeliveryTime?: any;
