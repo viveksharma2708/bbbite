@@ -163,6 +163,7 @@ export default function Home({
   const [selectedProductDetails, setSelectedProductDetails] = useState<Product | null>(null);
 
   const [showClosedModal, setShowClosedModal] = useState(false);
+  const [hasScrolledForSearch, setHasScrolledForSearch] = useState(false);
 
   const categories = ['All', ...Array.from(new Set(products.map(p => p.category)))];
 
@@ -208,6 +209,25 @@ export default function Home({
       unsubSettings();
     };
   }, []);
+
+  useEffect(() => {
+    if (searchQuery.trim().length > 0 && !hasScrolledForSearch) {
+      const element = document.getElementById('chef-recommendations');
+      if (element) {
+        const offset = 100; // Account for fixed navbar
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
+      setHasScrolledForSearch(true);
+    } else if (searchQuery.trim().length === 0) {
+      setHasScrolledForSearch(false);
+    }
+  }, [searchQuery, hasScrolledForSearch]);
 
   const cartSubtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const deliveryFee = cartSubtotal > 100 || cartSubtotal === 0 ? 0 : 25;
