@@ -224,6 +224,7 @@ export default function Home({
         });
       }
       setHasScrolledForSearch(true);
+      setSelectedCategory('All');
     } else if (searchQuery.trim().length === 0) {
       setHasScrolledForSearch(false);
     }
@@ -481,10 +482,19 @@ export default function Home({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8">
-          <AnimatePresence mode="popLayout">
-            {filteredProducts.map((product, index) => (
-              <motion.div 
+        {filteredProducts.length === 0 ? (
+          <div className="col-span-full flex flex-col items-center justify-center py-20 px-4 text-center">
+            <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-6">
+              <Search className="w-10 h-10 text-slate-300" />
+            </div>
+            <h3 className="text-2xl font-display font-black text-slate-900 mb-2">No item found.</h3>
+            <p className="text-slate-500 font-medium">We couldn't find anything matching your search. Try adjusting your filters.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8">
+            <AnimatePresence mode="popLayout">
+              {filteredProducts.map((product, index) => (
+                <motion.div 
                 layout
                 key={product.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -570,6 +580,7 @@ export default function Home({
             ))}
           </AnimatePresence>
         </div>
+        )}
       </div>
 
       {/* Cart Slider Section */}
