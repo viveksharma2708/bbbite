@@ -1,6 +1,7 @@
-import { Search, MapPin, User, ShoppingBag, Menu, Utensils } from 'lucide-react';
+import { Search, MapPin, User, ShoppingBag, Menu, Utensils, Home, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { UserProfile } from '../types';
+import { auth } from '../lib/firebase';
 
 interface NavbarProps {
   onOpenSidebar: () => void;
@@ -25,7 +26,7 @@ export default function Navbar({
         {/* Mobile Menu */}
         <button 
           onClick={onOpenSidebar}
-          className="lg:hidden p-2 text-slate-500 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all"
+          className="p-2 text-slate-500 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all"
         >
           <Menu className="w-5 h-5 md:w-6 md:h-6" />
         </button>
@@ -41,6 +42,13 @@ export default function Navbar({
             <span className="hidden sm:block text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] leading-none mt-1">Campus Dining</span>
           </div>
         </Link>
+
+        {/* Desktop Navigation Links */}
+        <div className="hidden lg:flex items-center gap-2 px-2 shrink-0">
+          <Link to="/" className="flex items-center gap-2 px-3 py-2 text-slate-500 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all font-bold text-[10px] uppercase tracking-widest">
+            <Home className="w-4 h-4" /> Home
+          </Link>
+        </div>
 
         {/* Location Selector (Desktop Only) */}
         <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer shrink-0">
@@ -68,12 +76,22 @@ export default function Navbar({
         {/* Actions */}
         <div className="flex items-center gap-0.5 md:gap-4 shrink-0">
           {userProfile ? (
-            <Link to={userProfile.role === 'admin' ? '/admin' : '/orders'} className="flex flex-col items-center justify-center w-10 h-10 md:w-14 md:h-14 rounded-xl text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-all group relative">
-              <User className="w-5 h-5 md:w-6 md:h-6 group-hover:scale-110 transition-transform" />
-              {userProfile.role === 'admin' && (
-                <div className="absolute top-1 right-1 w-2 h-2 bg-primary-600 rounded-full" />
-              )}
-            </Link>
+            <>
+              {/* Desktop Logout */}
+              <button 
+                onClick={() => auth.signOut()}
+                className="hidden lg:flex items-center gap-2 px-3 py-2 text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all font-bold text-[10px] uppercase tracking-widest"
+              >
+                <LogOut className="w-4 h-4" /> Logout
+              </button>
+              
+              <Link to={userProfile.role === 'admin' ? '/admin' : '/orders'} className="flex flex-col items-center justify-center w-10 h-10 md:w-14 md:h-14 rounded-xl text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-all group relative">
+                <User className="w-5 h-5 md:w-6 md:h-6 group-hover:scale-110 transition-transform" />
+                {userProfile.role === 'admin' && (
+                  <div className="absolute top-1 right-1 w-2 h-2 bg-primary-600 rounded-full" />
+                )}
+              </Link>
+            </>
           ) : (
             <Link to="/login" className="flex items-center gap-1.5 px-3 md:px-6 py-2 md:py-3 bg-slate-900 text-white rounded-xl font-black text-[8px] md:text-[10px] uppercase tracking-widest hover:bg-primary-600 shadow-xl shadow-slate-200 transition-all active:scale-95">
               Login
